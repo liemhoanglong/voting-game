@@ -1,0 +1,35 @@
+stages:
+  # - test
+  - deploy
+
+# unit-test-job:
+#   stage: test
+#   script:
+#     - echo "JOB - Run unit test"
+#   rules:
+#     - if: '$CI_PIPELINE_SOURCE != "merge_request_event" && $CI_PIPELINE_SOURCE != "push"'
+#       when: never
+#     - if: '$CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "develop" || $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "production"'
+#       when: on_success
+#     - when: never
+
+deploy-job:
+  stage: deploy
+  image: docker:latest
+  services:
+    - docker:dind
+  before_script:
+    - docker login -u "$REGISTRY_USER" -p "$REGISTRY_PASSWORD" "$REGISTRY_URL"
+  script:
+    - |
+      if [ $CI_COMMIT_BRANCH == "production" ]; then 
+        tag="production"
+      else
+        tag="staging"
+      fi
+    - |
+    - chmod 777 ./scripts/build.sh
+    - TAG=$tag ./scripts/build.sh
+    - docker push "$REGISTRY_HOSTNAME/$REGISTRY_IMAGE_NAME:${tag}"
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && ($CI_COMMIT_BRANCH == "develop" || $CI_COMMIT_BRANCH == "production")'
