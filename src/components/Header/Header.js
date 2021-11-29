@@ -17,17 +17,20 @@ import * as Styled from './Header.styled';
 const propTypes = {
   reverse: PropTypes.bool,
   inGame: PropTypes.bool,
+  setShowPopupUpgradePlanning: PropTypes.func,
 };
 
 const defaultProps = {
   reverse: false,
   inGame: false,
+  setShowPopupUpgradePlanning: () => { },
 };
 
 function Header(props) {
   const {
     reverse,
     inGame,
+    setShowPopupUpgradePlanning,
   } = props;
 
   const location = useLocation();
@@ -37,7 +40,16 @@ function Header(props) {
     <Styled.HeaderContainer $light={reverse} transparent={inGame}>
       <Styled.Logo onClick={() => history.push(RouteUrl.HOME)} $visibility={inGame} src={reverse ? DarkLogo : Logo} />
       <Styled.ButtonContainer>
-        {user ? (<HeaderButton inGame={inGame} />
+        {user ? (
+          <>
+            {
+              location.pathname === '/' &&
+              <ButtonMaterial onClick={() => setShowPopupUpgradePlanning(true)}>
+                Pricing
+              </ButtonMaterial>
+            }
+            <HeaderButton inGame={inGame} />
+          </>
         ) : (!reverse && (
           <>
             <ButtonMaterial theme="transparent">

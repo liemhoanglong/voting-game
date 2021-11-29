@@ -270,11 +270,16 @@ function Table(props) {
         const newListCard = _data.subscribeToGame.cardIssues;
         const newListCardTemp = [];
         // ! Change _id to cardId
-        newListCard.forEach((card) => {
-          newListCardTemp.push(card);
-          newListCardTemp[newListCardTemp.length - 1].cardId = card._id;
-          delete newListCardTemp[newListCardTemp.length - 1]._id;
-        });
+        for (let i = 0; i < newListCard.length; i++) {
+          newListCardTemp.push({
+            cardId: newListCard[i]._id,
+            createAt: newListCard[i].createAt,
+            description: newListCard[i].description,
+            issue: newListCard[i].issue,
+            link: newListCard[i].link,
+            voteScore: newListCard[i].voteScore,
+          });
+        }
         setGameState({ cardIssue: gameState.cardIssue.concat(newListCardTemp) });
         break;
       }

@@ -1,11 +1,13 @@
 /* eslint-disable sonarjs/cognitive-complexity */
 import React, { useState, useRef } from 'react';
 import PropTypes from 'prop-types';
+import { useRecoilValue } from 'recoil';
 import { useParams } from 'react-router';
 import Swal from 'sweetalert2';
 
 import * as VotingSystem from 'constants/votingSystem.constant';
 
+import { GameState } from 'recoils/gameState/atom';
 import { teamService } from 'services';
 
 import ClickAwayListener from '@material-ui/core/ClickAwayListener';
@@ -21,32 +23,34 @@ import CardIssueModal from 'components/CardIssueModal';
 import * as Styled from './CardIssue.styled';
 
 const propTypes = {
-  issueData: PropTypes.object,
-  gameState: PropTypes.object,
+  selected: PropTypes.bool,
+  index: PropTypes.number,
 };
 
 const defaultProps = {
-  issueData: null,
-  gameState: null,
+  selected: false,
+  index: 0,
 };
 
 function CardIssue(props) {
-  const { issueData, gameState } = props;
+  const {
+    selected,
+    index,
+  } = props;
+  const gameState = useRecoilValue(GameState);
+
   const {
     voteScore,
     issue,
     link,
     description,
     cardId,
-  } = issueData;
+  } = gameState.cardIssue[index];
   const { linkTeam } = useParams();
   const linkSplit = linkTeam.split('-');
   const teamId = linkSplit[linkSplit.length - 1];
   const [pointPopper, setPointPopper] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
   const anchorRef = useRef(null);
-
-  const selected = gameState.currentIssue === cardId;
 
   const classes = Styled.PointButtonStyles();
 
@@ -93,9 +97,9 @@ function CardIssue(props) {
         Swal.fire({
           title: '<strong>Delete</strong>',
           html:
-            '<b>Do you want to remove the issue' +
-            `<span style="color:red"> ${issue} </span>` +
-            '?</b>',
+            '<b>Do you want to remove the issue </b>' +
+            `<b style="color:red"> ${issue} </b>` +
+            '?',
           showCancelButton: true,
           confirmButtonText: 'Confirm',
           confirmButtonColor: 'red',
@@ -140,6 +144,7 @@ function CardIssue(props) {
     }
   };
 
+  const [openModal, setOpenModal] = useState(false);
   return (
     <div style={{ paddingRight: 10 }}>
       <Styled.CardWrapper $selected={selected} onClick={(e) => { if (e.target.tagName === 'DIV') setOpenModal(true); }}>
@@ -147,7 +152,7 @@ function CardIssue(props) {
           <Styled.ButtonRemove onClick={removeCardIssueById}>
             x
           </Styled.ButtonRemove>}
-        <Styled.TitleTooltip title={issue} placement="top">
+        <Styled.TitleTooltip title={issue} placement="left">
           <Styled.Title>
             {issue}
           </Styled.Title>

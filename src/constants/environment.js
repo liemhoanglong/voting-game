@@ -9,6 +9,7 @@ const {
   WS_URL,
   JIRA_API_ID,
   REDIRECT_URI,
+  STRIPE_PUBLIC_API,
 } = process.env;
 
 export default {
@@ -22,4 +23,5 @@ export default {
   WS_URL,
   JIRA_API_ID,
   REDIRECT_URI,
+  STRIPE_PUBLIC_API,
 };

@@ -1,12 +1,13 @@
-import React, {
-  useContext, useState, useEffect, useMemo, useRef,
-} from 'react';
+import React, { useContext, useState, useEffect } from 'react';
 import { useSetRecoilState, useRecoilValue } from 'recoil';
 import Swal from 'sweetalert2';
 import { FixedSizeList as List } from 'react-window';
-import { useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
+import QueryString from 'query-string';
+import { Scrollbars } from 'react-custom-scrollbars';
+// import env from 'constants/environment';
 
-import { teamService } from 'services';
+import { teamService, userService } from 'services';
 import { GameState } from 'recoils/gameState/atom';
 import { setNewGameState } from 'recoils/gameState/selector';
 
@@ -16,54 +17,82 @@ import CloseIcon from '@material-ui/icons/Close';
 
 import { getErrorMessage } from 'utils/messageError.utils';
 import * as Alert from 'utils/alert.util';
-import { removeMultiJiraLocalStorage } from 'utils/removeMultiLocalStorage.utils';
 import { LocalStorageKey } from 'constants/localStorage';
 
 import TooltipMaterial from 'components/Shared/TooltipMaterial';
+import InputMaterial from 'components/Shared/InputMaterial';
 import ButtonMaterial from 'components/Shared/ButtonMaterial';
-import CustomScrollbarsVirtualList from 'components/Shared/CustomScrollbarsVirtualList';
 import CardIssue from 'components/CardIssue';
-import ImportJiraModal from 'components/ImportJiraModal';
-import WelcomeJiraModal from 'components/ImportJiraModal/WelcomeJiraModal';
-import AddIssueForm from 'components/CardSidebar/AddIssueForm';
 import { showRightSideBar } from 'screens/Game/Game';
-
 import * as Styled from './CardSidebar.styled';
+import ImportJiraModal from '../ImportFromJiraModal';
+import CustomScrollbarsVirtualList from '../Shared/CustomScrollbarsVirtualList';
+
+const listRef = React.createRef();
+const outerRef = React.createRef();
 
 // eslint-disable-next-line sonarjs/cognitive-complexity
 function CardSidebar() {
-  const gameState = useRecoilValue(GameState);
-  const setGameState = useSetRecoilState(setNewGameState);
-
+  const history = useHistory();
+  const styleProps = { theme: 'transparent' };
   const value = useContext(showRightSideBar);
-
   const [inputNewIssue, setInputNewIssue] = useState(false);
   const [openVotingPopper, setOpenVotingPopper] = useState(false);
   const [issueTitle, setIssueTitle] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showJiraModal, setShowJiraModal] = useState();
-  const [showWelcomeJiraModal, setShowWelcomeJiraModal] = useState(false);
+  const [showPopupImportFromJira, setShowPopupImportFromJira] = useState(false);
   const [projectListJira, setProjectListJira] = useState(null);
   const [issueListFromJira, setIssueListFromJira] = useState(null);
+  const gameState = useRecoilValue(GameState);
+  const setGameState = useSetRecoilState(setNewGameState);
   const [issueName, setIssueName] = useState('');
+  const [checkTokenJira, setCheckTokenJira] = useState(localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID));
 
-  const listRef = useRef();
-  const outerRef = useRef();
-
-  const styleProps = { theme: 'transparent' };
   const classes = Styled.SidebarButtonStyles(styleProps);
   const classCancel = Styled.SidebarButtonStyles({ cancel: 'cancel', theme: 'transparent' });
+  const saveIssueButtonClasses = Styled.ConfirmIssueStyle({ value: 'save' });
   const defaultIssue = Styled.AddNewIssueStyle();
+  const cancelIssue = Styled.ConfirmIssueStyle();
+  const crrUrl = window.location.href;
+  const teamId = crrUrl.split('-')[crrUrl.split('-').length - 1];
 
-  const { linkTeam } = useParams();
-  const teamId = linkTeam.slice(linkTeam.lastIndexOf('-') + 1);
+  useEffect(() => {
+    const getJiraCloudId = async () => {
+      if (localStorage.getItem(LocalStorageKey.JIRA) === 'setup') {
+        localStorage.removeItem(LocalStorageKey.JIRA);
+        const { code, state } = QueryString.parse(history.location.search);
+        if (!code) return;
+        const jiraAccess = await getCloudIdJira(code);
+        localStorage.setItem(LocalStorageKey.JIRA_CLOUD_ID, jiraAccess.jiraCloudId);
+        localStorage.setItem(LocalStorageKey.JIRA_TOKEN, jiraAccess.jiraToken);
+        localStorage.setItem(LocalStorageKey.JIRA_URL, jiraAccess.jiraUrl);
+        localStorage.setItem(LocalStorageKey.JIRA_CREATE, new Date().getTime());
+        history.push(state.slice(11));
+        const userId = await userService.getUserId();
+        // ! set change host
+        await teamService.changeHostWhenJiraCallback({ teamId, userId });
+        localStorage.removeItem(LocalStorageKey.CHANGE_HOST);
+      }
+    };
+    getJiraCloudId();
+  }, []);
+
+  const getCloudIdJira = async (code) => {
+    try {
+      return await teamService.getCloudIdJira(code);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   const removeAllIssue = async () => {
     if (gameState.isHost) {
       if (!gameState.isCountingDown && !gameState.gameFinish && !gameState.currentIssue) {
         const result = await Swal.fire({
           title: '<strong>Delete</strong>',
-          html: '<b>Do you want to remove all issues ?</b>',
+          html:
+            '<b>Do you want to remove all issues</b>' +
+            '?',
           showCancelButton: true,
           confirmButtonText: 'Confirm',
           confirmButtonColor: 'red',
@@ -90,20 +119,16 @@ function CardSidebar() {
 
   const importIssue = async (listProject) => {
     try {
-      setShowJiraModal(true);
+      setShowPopupImportFromJira(true);
       if (!localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID)) return;
       setLoading(true);
-      const issueListRes = await teamService.getListCardIssueFromJira({
+      const res = await teamService.getListCardIssueFromJira({
         project: listProject,
         jiraToken: localStorage.getItem(LocalStorageKey.JIRA_TOKEN),
         jiraCloudId: localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID),
         url: localStorage.getItem(LocalStorageKey.JIRA_URL),
       });
-      // add props selected to use method produce from immer package
-      issueListRes.listIssue.forEach((issue) => {
-        issue.selected = false;
-      });
-      setIssueListFromJira(issueListRes);
+      setIssueListFromJira(res);
       setLoading(false);
     } catch (err) {
       Alert.error(getErrorMessage(err));
@@ -112,36 +137,26 @@ function CardSidebar() {
   };
 
   const getAllProject = async () => {
-    // check this token is expire - > 3500 * 1000 milliseconds
-    if (new Date().getTime() - parseInt(localStorage.getItem(LocalStorageKey.JIRA_CREATE)) > 3500 * 1000) {
-      removeMultiJiraLocalStorage();
-    }
-    if (!localStorage.getItem(LocalStorageKey.JIRA_CREATE)) {
-      setShowWelcomeJiraModal(true);
-    } else {
-      try {
-        setShowJiraModal(true);
-        // check this LocalStorageKey.JIRA_CLOUD_ID and LocalStorageKey.JIRA_TOKEN is exist
-        if (
-          !(localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID) &&
-            localStorage.getItem(LocalStorageKey.JIRA_TOKEN)
-          )
-        ) return;
-        setLoading(true);
-        const projectListRes = await teamService.getListProjectFromJira({
-          jiraCloudId: localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID),
-          jiraToken: localStorage.getItem(LocalStorageKey.JIRA_TOKEN),
-        });
-        // add props selected to use method produce from immer package
-        projectListRes.forEach((project) => {
-          project.selected = false;
-        });
-        setProjectListJira(projectListRes);
-        setLoading(false);
-      } catch (err) {
-        Alert.error(getErrorMessage(err));
-        setLoading(false);
+    try {
+      setShowPopupImportFromJira(true);
+      if (new Date().getTime() - parseInt(localStorage.getItem(LocalStorageKey.JIRA_CREATE)) > 3500 * 1000) {
+        localStorage.removeItem(LocalStorageKey.JIRA_CLOUD_ID);
+        localStorage.removeItem(LocalStorageKey.JIRA_TOKEN);
+        localStorage.removeItem(LocalStorageKey.JIRA_URL);
+        localStorage.removeItem(LocalStorageKey.JIRA_CREATE);
+        setCheckTokenJira(null);
       }
+      if (!localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID) || !localStorage.getItem(LocalStorageKey.JIRA_TOKEN)) return;
+      setLoading(true);
+      const res = await teamService.getListProjectFromJira({
+        jiraCloudId: localStorage.getItem(LocalStorageKey.JIRA_CLOUD_ID),
+        jiraToken: localStorage.getItem(LocalStorageKey.JIRA_TOKEN),
+      });
+      setProjectListJira(res);
+      setLoading(false);
+    } catch (err) {
+      Alert.error(getErrorMessage(err));
+      setLoading(false);
     }
   };
 
@@ -218,14 +233,20 @@ function CardSidebar() {
     setIssueTitle(e.target.value);
   };
 
-  const cardIssueListHeight = useMemo(() => (
-    gameState.cardIssue.length > 3 ? 510 : gameState.cardIssue.length * 150
-  ), [gameState.cardIssue]);
-
-  const getCardIssueKey = (idx, data) => {
-    const { cardId } = data[idx].props.issueData;
-    return cardId;
+  const stylesConfirm = {
+    justifyContent: 'space-between',
   };
+
+  const renderCard = ({ index, style }) => (
+    <div style={style}>
+      <CardIssue
+        selected={gameState.currentIssue === gameState.cardIssue[index].cardId}
+        style={style}
+        index={index}
+      > test
+      </CardIssue>
+    </div>
+  );
 
   return (
     <>
@@ -234,25 +255,18 @@ function CardSidebar() {
         <Styled.SideBarWrapper
           $show={value.show}
         >
-          <Styled.SidebarHeader>
+          <Styled.SidebarHeader style={stylesConfirm}>
             <Styled.Title>Issues</Styled.Title>
-            <WelcomeJiraModal
-              open={showWelcomeJiraModal}
-              handleClose={() => setShowWelcomeJiraModal(false)}
-              setShowJiraModal={setShowJiraModal}
-            />
             <ImportJiraModal
               importIssue={importIssue}
               projectListJira={projectListJira}
-              setProjectListJira={setProjectListJira}
+              checkTokenJira={checkTokenJira}
+              setCheckTokenJira={setCheckTokenJira}
               setLoading={setLoading}
               loading={loading}
-              open={showJiraModal}
-              setShowJiraModal={setShowJiraModal}
-              handleClose={() => setShowJiraModal(false)}
+              open={showPopupImportFromJira}
+              handleClose={() => setShowPopupImportFromJira(false)}
               issueListFromJira={issueListFromJira}
-              setIssueListFromJira={setIssueListFromJira}
-              setShowWelcomeJiraModal={setShowWelcomeJiraModal}
             />
             {
               gameState.isHost &&
@@ -297,38 +311,58 @@ function CardSidebar() {
             ><CloseIcon />
             </ButtonMaterial>
           </Styled.SidebarHeader>
-          <List
-            autoHeight
-            height={cardIssueListHeight}
-            itemData={
-              gameState.cardIssue.map((issue) => (
-                <CardIssue
-                  issueData={issue}
-                  gameState={gameState}
-                />
-              ))
-            }
-            itemKey={getCardIssueKey}
-            itemCount={gameState.cardIssue.length}
-            itemSize={150}
-            width={270}
-            initialScrollOffset={0}
-            ref={listRef}
-            outerElementType={CustomScrollbarsVirtualList}
-            outerRef={outerRef}
+          <Scrollbars
+            autoHide
+            hideTracksWhenNotNeeded
+            style={{ height: gameState.cardIssue.length > 3 ? 510 : gameState.cardIssue.length * 150, width: 270 }}
           >
-            {({ style, data, index }) => <div style={style}>{data[index]}</div>}
-          </List>
+            <List
+              ref={listRef}
+              height={gameState.cardIssue.length > 3 ? 510 : gameState.cardIssue.length * 150}
+              itemData={gameState.cardIssue}
+              itemCount={gameState.cardIssue.length}
+              itemSize={150}
+              width={270}
+              initialScrollOffset={0}
+              outerElementType={CustomScrollbarsVirtualList}
+              outerRef={outerRef}
+            >
+              {renderCard}
+            </List>
+          </Scrollbars>
           {
             inputNewIssue ?
-              <AddIssueForm
-                issueTitle={issueTitle}
-                inputNewIssue={inputNewIssue}
-                setIssueTitle={setIssueTitle}
-                addNewIssue={addNewIssue}
-                handleChangeInput={handleChangeInput}
-                setInputNewIssue={setInputNewIssue}
-              />
+              <form onSubmit={addNewIssue}>
+                <br />
+                <InputMaterial
+                  label="New Issue Title"
+                  type="text"
+                  variant="outlined"
+                  fullWidth
+                  autoFocus
+                  autoComplete="off"
+                  value={issueTitle}
+                  onChange={handleChangeInput}
+                />
+                <Styled.SidebarHeader style={stylesConfirm}>
+                  <ButtonMaterial
+                    classes={{
+                      root: cancelIssue.root,
+                      label: defaultIssue.label,
+                    }}
+                    onClick={() => { setInputNewIssue(!inputNewIssue); setIssueTitle(''); }}
+                  >Cancel
+                  </ButtonMaterial>
+                  <ButtonMaterial
+                    classes={{
+                      root: saveIssueButtonClasses.root,
+                      label: saveIssueButtonClasses.label,
+                    }}
+                    type="submit"
+                  >Save
+                  </ButtonMaterial>
+                </Styled.SidebarHeader>
+              </form>
               :
               <ButtonMaterial
                 classes={{

@@ -88,6 +88,7 @@ function CardIssueModal(props) {
         Alert.error(error);
       }
     }
+    closeModal();
   };
 
   return (

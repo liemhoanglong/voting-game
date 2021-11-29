@@ -1,6 +1,6 @@
 import {
   CREATE_TEAM,
-  GET_LIST_SITE_JIRA,
+  GET_CLOUD_ID_JIRA,
   GET_LIST_PROJECT_FROM_JIRA,
   GET_LIST_CARD_ISSUE_FROM_JIRA,
   IMPORT_LIST_CARD_ISSUE,
@@ -39,15 +39,15 @@ export const createTeam = async (input, filee) => {
   return data.createTeam;
 };
 
-export const getListSiteJira = async (code) => {
+export const getCloudIdJira = async (code) => {
   const { data } = await client.query({
-    query: GET_LIST_SITE_JIRA,
+    query: GET_CLOUD_ID_JIRA,
     fetchPolicy: FETCH_POLICY.NO_CACHE,
     variables: {
       code,
     },
   });
-  return data.getListSiteJira;
+  return data.getCloudIdJira;
 };
 
 export const getListProjectFromJira = async (input) => {

@@ -10,11 +10,12 @@ import reportWebVitals from './reportWebVitals';
 
 import App from './components/App';
 import './index.scss';
+import './index.css';
 
 const renderApp = () => (
   <ApolloProvider client={client}>
     <RecoilRoot>
-      {process.env.NODE_ENV === 'development' && <RecoilLogger />}
+      <RecoilLogger />
       <App />
     </RecoilRoot>
   </ApolloProvider>

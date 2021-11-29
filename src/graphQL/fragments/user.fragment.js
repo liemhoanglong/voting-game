@@ -5,5 +5,6 @@ fragment User on AuthPayload {
        token
        email
        name
+       stripeCustomerId
     }
 `;

@@ -1,0 +1,31 @@
+.cursor-hover{
+  cursor: pointer;
+}
+
+.m-0{
+  margin: 0;
+}
+
+.d-flex{
+  display: flex;
+}
+
+.justify-content-between{
+  justify-content: space-between;
+}
+
+.justify-content-end{
+  justify-content: flex-end;
+}
+
+.align-items-center{
+  align-items: center;
+}
+
+.flex-wrap{
+  flex-wrap: wrap;
+}
+
+.text-black{
+  color: black
+}

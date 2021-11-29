@@ -9,6 +9,7 @@ import Menu from '@material-ui/core/Menu';
 import ExitToAppIcon from '@material-ui/icons/ExitToApp';
 import AddCircleOutlineIcon from '@material-ui/icons/AddCircleOutline';
 import GroupIcon from '@material-ui/icons/Group';
+import PaymentIcon from '@material-ui/icons/Payment';
 
 export const Wrapper = styled.div`
 
@@ -42,6 +43,11 @@ export const GroupsIcons = styled(GroupIcon)`
 `;
 
 export const NewTeamIcon = styled(AddCircleOutlineIcon)`
+  font-size: 18px;
+  color: ${Colors.BLACK};
+`;
+
+export const MySubscription = styled(PaymentIcon)`
   font-size: 18px;
   color: ${Colors.BLACK};
 `;

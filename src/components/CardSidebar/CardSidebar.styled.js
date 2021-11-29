@@ -14,7 +14,6 @@ export const CardIssueWrapper = styled.div`
 export const SidebarHeader = styled.div`
   display:flex;
   flex-direction:row;
-  justify-content: space-between;
 `;
 
 export const Title = styled.div`

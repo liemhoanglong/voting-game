@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
 
 import { RouteUrl } from 'constants/router';
@@ -16,6 +16,7 @@ import useMediaQuery from '@material-ui/core/useMediaQuery';
 import Header from 'components/Header';
 import ButtonMaterial from 'components/Shared/ButtonMaterial';
 import Toast from 'components/Shared/Toast';
+import UpgradePlanningDialog from 'components/UpgradePlanningModal';
 import * as Styled from './Home.styled';
 
 function Home() {
@@ -23,11 +24,16 @@ function Home() {
   const matches = useMediaQuery(theme.breakpoints.down('sm'));
   const classes = Styled.ButtonNewGameStyles();
   const [toast, setToast] = useRecoilState(ToastData);
+  const [showPopupUpgradePlanning, setShowPopupUpgradePlanning] = useState(false);
 
   return (
     <>
       <Styled.HomeWrapper>
-        <Header />
+        <UpgradePlanningDialog
+          open={showPopupUpgradePlanning}
+          handleClose={() => setShowPopupUpgradePlanning(false)}
+        />
+        <Header setShowPopupUpgradePlanning={setShowPopupUpgradePlanning} />
         <Styled.Container>
           <Styled.Main>
             <Styled.MainLeft>
@@ -73,7 +79,7 @@ function Home() {
           </Styled.Main>
           <Styled.Footer>
             <ButtonMaterial theme="transparent">Contact us</ButtonMaterial>
-            <ButtonMaterial theme="transparent">Go premium</ButtonMaterial>
+            <ButtonMaterial theme="transparent" onClick={() => setShowPopupUpgradePlanning(true)}>Go premium</ButtonMaterial>
             <ButtonMaterial theme="transparent">Terms and conditions</ButtonMaterial>
           </Styled.Footer>
         </Styled.Container>

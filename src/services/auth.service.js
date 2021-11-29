@@ -1,11 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import * as authApi from 'services/graphServices/auth.graph';
+import { LocalStorageKey } from 'constants/localStorage';
 
 class AuthService {
   setLocalStorageAuth(result) {
-    localStorage.setItem('token', result.token);
-    localStorage.setItem('name', result.name);
-    localStorage.setItem('email', result.email);
+    localStorage.setItem(LocalStorageKey.TOKEN, result.token);
+    localStorage.setItem(LocalStorageKey.NAME, result.name);
+    localStorage.setItem(LocalStorageKey.EMAIL, result.email);
+    localStorage.setItem(LocalStorageKey.STRIPE_CUSTOMER_ID, result.stripeCustomerId);
   }
 
   async login(input) {

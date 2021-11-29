@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { withStyles, useTheme } from '@material-ui/core/styles';
 
 import { Scrollbars as Scrollbar } from 'react-custom-scrollbars';
@@ -76,24 +76,18 @@ function Sidebar() {
   const theme = useTheme();
   const matches = useMediaQuery(theme.breakpoints.down('md'));
   const history = useHistory();
-
   const team = useRecoilValue(Team);
   const gameState = useRecoilValue(GameState);
-
   const [teamDropdown, setTeamDropdown] = useState(false);
   const [teamList, setTeamList] = useState([]);
   const [showMenu, setShowMenu] = useState(false);
   const [openModal, setOpenModal] = useState(false);
-
-  const anchorRef = useRef(null);
-
-  const { linkTeam } = useParams();
-  const teamId = linkTeam.split('-')[1];
-
   const onlineUsers = team.users?.filter((user) => (user.cardState !== CardState.OFFLINE)) || [];
   const offlineUsers = team.users?.filter((user) => (user.cardState === CardState.OFFLINE)) || [];
-
+  const anchorRef = useRef(null);
   const classes = Styled.TeamSelectStyles();
+  const crrUrl = window.location.href;
+  const teamId = crrUrl.split('-')[crrUrl.split('-').length - 1];
 
   useEffect(() => {
     const getListTeam = async () => {

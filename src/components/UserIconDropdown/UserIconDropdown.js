@@ -94,6 +94,14 @@ function UserIconDropdown(props) {
               </Styled.ItemWrapper>
             </Styled.Link>
           </Styled.MenuPartWrapper>
+          <Styled.MenuPartWrapper border>
+            <Styled.Link to={RouteUrl.MY_SUBSCRIPTION}>
+              <Styled.ItemWrapper>
+                <Styled.MySubscription />
+                <Styled.ItemText bold>My subscription</Styled.ItemText>
+              </Styled.ItemWrapper>
+            </Styled.Link>
+          </Styled.MenuPartWrapper>
           <Styled.MenuPartWrapper>
             <Styled.ItemWrapper onClick={handleSignOut}>
               <Styled.LogOutIcon />

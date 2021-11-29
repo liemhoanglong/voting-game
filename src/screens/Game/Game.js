@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useRecoilState } from 'recoil';
 import { Scrollbars as Scrollbar } from 'react-custom-scrollbars';
-import { useParams } from 'react-router-dom';
 
 import * as CardState from 'constants/cardState.constant';
 
@@ -21,8 +20,8 @@ import useGetGameState from './hooks/useGetGameState';
 export const showRightSideBar = React.createContext();
 
 function Game() {
-  const { linkTeam } = useParams();
-  const teamId = linkTeam.slice(linkTeam.lastIndexOf('-') + 1);
+  const crrUrl = window.location.href;
+  const teamId = crrUrl.split('-')[crrUrl.split('-').length - 1];
   const [playingUsers, setPlayingUsers] = useState([]);
   const [team, setTeam] = useRecoilState(Team);
 

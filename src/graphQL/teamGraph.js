@@ -6,11 +6,12 @@ export const CREATE_TEAM = gql`
   }
 `;
 
-export const GET_LIST_SITE_JIRA = gql`
-  query getListSiteJira($code: String!) {
-    getListSiteJira(code : $code){
+export const GET_CLOUD_ID_JIRA = gql`
+  query getCloudIdJira($code: String!) {
+    getCloudIdJira(code : $code){
       jiraToken 
-      jiraSiteList {id url name}
+      jiraCloudId
+      jiraUrl
     }
   }
 `;

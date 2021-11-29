@@ -6,8 +6,8 @@ class TeamService {
     return teamApi.createTeam(input, file);
   }
 
-  getListSiteJira(code) {
-    return teamApi.getListSiteJira(code);
+  getCloudIdJira(code) {
+    return teamApi.getCloudIdJira(code);
   }
 
   getListProjectFromJira(input) {

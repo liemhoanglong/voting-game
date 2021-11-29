@@ -35,6 +35,8 @@ function ThirdPartyAuth(props) {
   const responseGoogle = async ({ tokenId }) => {
     if (!tokenId) return;
     try {
+      // console.log(tokenId)
+      // console.log('login google')
       const result = await authService.loginWithGoogle(tokenId);
       if (result) {
         setUser({

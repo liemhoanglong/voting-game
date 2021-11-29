@@ -7,6 +7,8 @@ export const RouteUrl = {
   RESET_PASSWORD: '/reset-password/:resetToken',
   CREATE_TEAM: '/create-team',
   MY_TEAM: '/my-team',
+  MY_SUBSCRIPTION: '/my-subscription',
+  SUBSCRIPTION_DETAIL: '/subscription-detail/:id',
 };
 
 export const RoutableModalUrl = {

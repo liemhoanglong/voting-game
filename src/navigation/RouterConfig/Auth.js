@@ -7,6 +7,14 @@ export const AuthConfig = [
     path: RouteUrl.CREATE_TEAM,
   },
   {
+    component: lazy(() => import('screens/MySubscription')),
+    path: RouteUrl.MY_SUBSCRIPTION,
+  },
+  {
+    component: lazy(() => import('screens/SubscriptionDetail')),
+    path: RouteUrl.SUBSCRIPTION_DETAIL,
+  },
+  {
     component: lazy(() => import('screens/PageNotFound')),
     path: RouteUrl.PAGE_NOT_FOUND,
   },
@@ -15,7 +23,7 @@ export const AuthConfig = [
     path: RouteUrl.MY_TEAM,
   },
   {
-    component: lazy(() => import('screens/JiraCallback')),
+    component: lazy(() => import('screens/Game')),
     path: RouteUrl.JIRA_CALLBACK,
   },
   {
