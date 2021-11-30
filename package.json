@@ -117,27 +117,20 @@
     "@babel/plugin-syntax-import-meta": "^7.7.4",
     "@babel/plugin-transform-runtime": "^7.15.0",
     "@babel/preset-env": "^7.15.6",
-    "@material-ui/lab": "^4.0.0-alpha.60",
     "babel-plugin-import": "^1.13.3",
     "eslint": "^7.32.0",
     "eslint-config-airbnb": "^18.2.1",
     "eslint-plugin-babel": "^5.3.1",
     "eslint-plugin-sonarjs": "^0.7.0",
-    "husky": "^4.2.5",
     "lint-staged": "^11.1.2",
     "recoil-logger": "^1.2.0"
   },
   "scripts": {
     "start": "node scripts/start.js",
-    "build": "LUMIN_NODE_ENV=production node scripts/build.js",
+    "build": "node scripts/build.js",
     "lint": "eslint ./src/**/*.js",
     "lint:fix": "eslint --fix ./src/**/*.js",
     "preinstall": "npx npm-force-resolutions"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
   },
   "lint-staged": {
     "src/**/*.{js,jsx}": [
